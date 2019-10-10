@@ -5,28 +5,37 @@ use std::time::Duration;
 use tokio::runtime::Runtime;
 use tokio::timer::delay_for;
 
-fn load_accounts(path: &str) -> std::io::Result<Vec<(String, String)>> {
+struct Account {
+    xuehao: String,
+    cookie: String,
+    count: usize,
+}
+
+fn load_accounts(path: &str) -> std::io::Result<Vec<Account>> {
     let file = File::open(path)?;
-    let mut cookies = vec![];
+    let mut accounts = vec![];
     for line in BufReader::new(file).lines() {
         let line = line?;
         let parts: Vec<&str> = line.split(" ").collect();
-        assert!(parts.len() == 2);
-        cookies.push((parts[0].to_owned(), parts[1].to_owned()));
+        assert!(parts.len() == 3);
+        accounts.push(Account {
+            xuehao: parts[0].to_owned(),
+            cookie: parts[1].to_owned(),
+            count: parts[2].parse().expect("invalid count"),
+        });
     }
-    Ok(cookies)
+    Ok(accounts)
 }
 
-async fn exam((xuehao, cookie): (String, String)) -> reqwest::Result<()> {
+async fn exam(account: Account) -> reqwest::Result<()> {
     let client = reqwest::ClientBuilder::new()
         .cookie_store(true)
         .build()
         .unwrap();
 
-    const N: usize = 5 * 60;
-    let cookie = format!("wsess={}", cookie);
+    let cookie = format!("wsess={}", account.cookie);
 
-    for _ in 0..N {
+    for i in 0..=account.count {
         const HB_URL: &'static str = "http://examsafety.nuist.edu.cn/exam_xuexi_online.php";
         let params = [("cmd", "xuexi_online")];
 
@@ -37,7 +46,12 @@ async fn exam((xuehao, cookie): (String, String)) -> reqwest::Result<()> {
             .send()
             .await?;
         let value: Value = resp.json::<Value>().await?;
-        println!("[{}]: {}", xuehao, value["shichang"]);
+
+        println!(
+            "[{}]: {}, {}/{}",
+            account.xuehao, value["shichang"], i, account.count
+        );
+
         delay_for(Duration::from_secs(60)).await;
     }
 
@@ -52,10 +66,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for account in accounts {
         runtime.spawn(async move {
+            let xuehao = account.xuehao.clone();
+            let t0 = std::time::Instant::now();
             if let Err(e) = exam(account).await {
                 dbg!(e);
             }
-            dbg!(std::time::Instant::now());
+            println!("[{}]: stopped after {:?}", xuehao, t0.elapsed());
         });
     }
 
