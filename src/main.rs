@@ -52,7 +52,7 @@ async fn exam(account: Account) -> reqwest::Result<()> {
             account.xuehao, value["shichang"], i, account.count
         );
 
-        delay_for(Duration::from_secs(60)).await;
+        delay_for(Duration::from_secs(59)).await;
     }
 
     Ok(())

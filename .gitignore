@@ -1,3 +1,6 @@
 /target
 **/*.rs.bk
 accounts.txt
+account.txt
+__pycache__
+*.log
