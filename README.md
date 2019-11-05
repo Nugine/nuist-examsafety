@@ -19,17 +19,17 @@
     执行 python 代码
 
     ```bash
-    python heartbeat.py
+    python3 heartbeat.py
     ```
 
 3. Rust 实现
 
-    在项目目录下建立 accounts.txt，写入学号和 cookie
+    在项目目录下建立 accounts.txt，写入学号、cookie 和发送次数
 
     ```
-    2018xxxxxx01 thisiscookie1
-    2018xxxxxx02 thisiscookie2
-    2018xxxxxx03 thisiscookie3
+    2018xxxxxx01 thisiscookie1 60
+    2018xxxxxx02 thisiscookie2 60
+    2018xxxxxx03 thisiscookie3 60
     ```
 
     ```bash
